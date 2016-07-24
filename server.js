@@ -21,7 +21,9 @@ class Server {
 		this.initRedis();
 
 		const port = this.port;
-		http.createServer(server.handleRequest).listen(port, function () {
+		http.createServer(function (request, response) {
+			server.handleRequest(request, response)
+		}).listen(port, function () {
 			console.log("Server started", port);
 		});
 	}
@@ -35,23 +37,19 @@ class Server {
 	handleRequest(request, response) {
 
 		const url = request.url.split('?')[0];
-		const server = this;
-
-		if (url === '/favicon.ico') return;
 
 		console.log(request.method + ': ' + url);
 
-
 		if (restHandlers.hasOwnProperty(url)) {
+
 			var handler = restHandlers[url].create(redis);
 			try {
 				handler.handle(request, response);
 			} catch (e) {
-				server.handleError(response, e);
+				this.handleError(response, e);
 			}
 		} else {
-			var e = new InvalidRequest(300, {'error': 'No mapped url: ' + url});
-			server.handleError(response, e);
+			this.handleError(response, new InvalidRequest(300, {'error': 'No mapped url: ' + url}));
 		}
 	}
 
