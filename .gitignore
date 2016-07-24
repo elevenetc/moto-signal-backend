@@ -2,3 +2,4 @@ moto-signal-backend.iml
 moto-signal-backend.ipr
 moto-signal-backend.iws
 /node_modules/*
+local-settings.js
