@@ -17,6 +17,12 @@ class GCMToken extends RestHandler {
 		this.internalFinalize();
 	}
 
+	handleDelete() {
+		this.redis.del(this.getTokenKey());
+		this.setResultOk();
+		this.internalFinalize();
+	}
+
 	handleGet() {
 
 		const handler = this;
