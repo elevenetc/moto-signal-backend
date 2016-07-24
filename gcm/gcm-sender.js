@@ -12,6 +12,9 @@ class GCMSender {
 	constructor(redis) {
 		this.redis = redis;
 		this.pingHandler = null;
+		this.maxPingDiffTime = 0;
+		this.minPingDiffTime = Number.MAX_VALUE;
+		this.lastDiffPingTime = 0;
 	}
 
 	start() {
@@ -20,7 +23,7 @@ class GCMSender {
 
 			if (token == null) {
 				setTimeout(function () {
-					ref.getToken();
+					ref.start();
 				}, settings.checkTokensTime);
 			} else {
 				ref.ping(token);
@@ -29,6 +32,9 @@ class GCMSender {
 	}
 
 	getToken(tokenHandler) {
+
+		if(tokenHandler === undefined || tokenHandler === null) throw new Error('undefined tokenHandler');
+
 		const ref = this;
 		ref.redis.keys('token*', function (error, tokens) {
 			if (tokens.length > 0) {
@@ -43,6 +49,13 @@ class GCMSender {
 	postBackPing(token) {
 		const ref = this;
 		if (this.pingHandler != null) {
+
+			this.lastDiffPingTime = Date.now() - this.pingHandler.initTime;
+			if (this.lastDiffPingTime > this.maxPingDiffTime) this.maxPingDiffTime = this.lastDiffPingTime;
+			if (this.lastDiffPingTime < this.minPingDiffTime) this.minPingDiffTime = this.lastDiffPingTime;
+
+			console.log('ping back time: ' + this.lastDiffPingTime);
+
 			this.pingHandler.clear();
 			this.pingHandler = null;
 			setTimeout(function () {

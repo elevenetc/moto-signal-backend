@@ -9,6 +9,7 @@ class PingHandler {
 		this.isWaiting = true;
 		this.alarmTimer = null;
 		this.alarmHandler = alarmHandler;
+		this.initTime = Date.now();
 		this.init();
 	}
 
