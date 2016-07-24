@@ -6,12 +6,14 @@ const http = require('http');
 const InvalidRequest = require('./exceptions/invalid-request');
 const restHandlers = require('./rest-handlers');
 const RestHandler = require('./rest/rest-handler');
+const GCMSender = require('./gcm/gcm-sender');
 const redis = require('redis').createClient();
 
 class Server {
 
 	constructor(port) {
 		this.port = port;
+		this.gcmSender = null;
 	}
 
 	start() {
@@ -19,6 +21,7 @@ class Server {
 		const server = this;
 
 		this.initRedis();
+		this.initGCM();
 
 		const port = this.port;
 		http.createServer(function (request, response) {
@@ -34,6 +37,11 @@ class Server {
 		});
 	}
 
+	initGCM() {
+		this.gcmSender = new GCMSender(redis);
+		this.gcmSender.start();
+	}
+
 	handleRequest(request, response) {
 
 		const url = request.url.split('?')[0];
@@ -42,7 +50,7 @@ class Server {
 
 		if (restHandlers.hasOwnProperty(url)) {
 
-			var handler = restHandlers[url].create(redis);
+			var handler = restHandlers[url].create(redis, this.gcmSender);
 			try {
 				handler.handle(request, response);
 			} catch (e) {
