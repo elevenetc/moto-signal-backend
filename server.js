@@ -26,7 +26,7 @@ class Server {
 		const port = this.port;
 		http.createServer(function (request, response) {
 			server.handleRequest(request, response)
-		}).listen(port, function () {
+		}).listen(port, '0.0.0.0', function () {
 			console.log("Server started", port);
 		});
 	}
